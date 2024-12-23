@@ -8,7 +8,7 @@ import base64
 
 # تحديد المسار إلى Tesseract
 try:
-    pytesseract.pytesseract.tesseract_cmd = https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/master/ara.traineddata  # تحقق من المسار حسب بيئتك
+    pytesseract.pytesseract.tesseract_cmd =  # تحقق من المسار حسب بيئتك
 except Exception as e:
     st.error(f"فشل في العثور على Tesseract: {e}")
 
