@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-import subprocess
+import urllib.request
 from PIL import Image
 import pytesseract
 import io
@@ -20,11 +20,8 @@ ara_traineddata_path = os.path.join(tessdata_dir, "ara.traineddata")
 if not os.path.exists(ara_traineddata_path):
     try:
         with st.spinner("جاري تحميل ملف اللغة العربية..."):
-            subprocess.run(
-                ["wget", "-O", ara_traineddata_path, 
-                 "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/master/ara.traineddata"],
-                check=True
-            )
+            url = "https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/master/ara.traineddata"
+            urllib.request.urlretrieve(url, ara_traineddata_path)
     except Exception as e:
         st.error(f"فشل تحميل ملف ara.traineddata: {e}")
         st.stop()
