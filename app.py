@@ -5,21 +5,14 @@ import pytesseract
 import io
 import base64
 
-# تحديد مسار Tesseract وبيانات اللغة بشكل ديناميكي
-if os.name == 'nt':  # نظام Windows
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # المسار الافتراضي على ويندوز
-    tessdata_dir_config = r'--tessdata-dir "tessdata"'
-elif os.name == 'posix':  # أنظمة Linux و macOS
-    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-    os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr/4.00/"  # احتفظ بهذا إذا كان مسار tessdata صحيحًا على نظامك
-    tessdata_dir_config = r'--tessdata-dir "tessdata"'
-else:
-    st.error("نظام التشغيل غير مدعوم.")
-    st.stop()
+# تحديد مسار tessdata النسبي داخل المشروع
+TESSDATA_DIR = os.path.join(os.path.dirname(__file__), 'tessdata')
+os.environ["TESSDATA_PREFIX"] = TESSDATA_DIR
 
+# إعداد الصفحة
 st.set_page_config(page_title="استخراج النص من الصور", layout="wide")
 
-# CSS
+# CSS للتنسيق
 st.markdown(
     """
     <style>
@@ -39,148 +32,69 @@ st.markdown(
         font-weight: bold;
         font-size: 20px;
     }
-    .header-text {
-        text-align: right;
-        font-weight: bold;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-    .button-container {
-        display: flex;
-        justify-content: flex-end;
-        width: 100%;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .stButton>button {
-        display: block;
-        margin-right: 0;
-        margin-left: auto;
-        min-width: 150px;
-        max-width: 300px;
-        padding: 10px 20px;
-        font-size: 16px;
-        border-radius: 5px;
-    }
-    .stSuccess, .stWarning, .stError {
-        direction: rtl;
-        text-align: center;
-        width: 100%;
-        margin-top: 10px;
-    }
-    .stSuccess > div, .stWarning > div, .stError > div {
-        max-width: 500px;
-        text-align: center;
-        padding: 10px;
-        border-radius: 5px;
-    }
-    .stSuccess > div {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    .stWarning > div {
-        background-color: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-    }
-    .stError > div {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    .stRadio > div {
-        direction: rtl;
-        text-align: right;
-    }
-    .stRadio label {
-        direction: rtl;
-        margin-right: 1em;
-    }
-    .stRadio > div > div {
-        display: inline-flex;
-        align-items: center;
-        margin-left: 1em;
-    }
-    .stTextInput > div > div > input, .stNumberInput > div > div > input {
-        direction: rtl;
-        text-align: right;
-    }
-    .stTextArea > div > div > textarea {
-        direction: rtl;
-        text-align: right;
-    }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 # الشريط الجانبي
 with st.sidebar:
-    st.markdown("<div class='header-text'>استخراج النص من الصور بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    operation = st.radio("اختر نوع العملية :", ("استخراج نص من صورة", "استخراج جميع النصوص من الصور في المجلد"))
+    st.markdown("<h3>استخراج النص من الصور</h3>", unsafe_allow_html=True)
+    operation = st.radio("اختر نوع العملية:", ("استخراج نص من صورة", "استخراج نصوص من مجلد"))
 
+# استخراج النص من صورة
 if operation == "استخراج نص من صورة":
-    st.markdown("<h1 class='rtl-text'>استخراج النص من صورة</h1>", unsafe_allow_html=True)
-    st.markdown("<div class='rtl-label'>اختر صورة:</div>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("", type=["png", "jpg", "jpeg", "webp"])
+    st.header("استخراج النص من صورة")
+    uploaded_file = st.file_uploader("اختر صورة:", type=["png", "jpg", "jpeg", "webp"])
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption="الصورة المحملة", use_container_width=True)
+        st.image(image, caption="الصورة المحملة", use_column_width=True)
 
         with st.spinner("جاري تحليل النصوص..."):
             try:
-                text = pytesseract.image_to_string(image, lang='ara+eng', config=tessdata_dir_config)
+                # تشغيل Tesseract
+                text = pytesseract.image_to_string(image, lang='ara+eng', config='--tessdata-dir ' + TESSDATA_DIR)
                 text = text.strip()
                 if not text:
                     st.warning("لم يتم العثور على أي نص في الصورة.")
-                    st.stop()
-            except pytesseract.TesseractNotFoundError:
-                st.error("لم يتم العثور على Tesseract. تأكد من تثبيته وإضافة مساره بشكل صحيح.")
-                st.stop()
+                else:
+                    st.text_area("النص المكتشف:", text, height=200)
+
+                    # رابط لتحميل النص المكتشف
+                    def create_download_link(text, filename="extracted_text.txt"):
+                        val = io.BytesIO()
+                        val.write(text.encode('utf-8'))
+                        val.seek(0)
+                        b64 = base64.b64encode(val.read()).decode('utf-8')
+                        return f'<a href="data:text/plain;base64,{b64}" download="{filename}">تحميل النص كمستند</a>'
+
+                    st.markdown(create_download_link(text), unsafe_allow_html=True)
             except Exception as e:
-                st.error(f"حدث خطأ أثناء تحليل الصورة: {e}")
-                st.stop()
+                st.error(f"حدث خطأ: {e}")
 
-        st.markdown("<div class='rtl-label'>النص المكتشف:</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='rtl-text'>{text}</div>", unsafe_allow_html=True)
+# استخراج النصوص من مجلد
+elif operation == "استخراج نصوص من مجلد":
+    st.header("استخراج النصوص من جميع الصور في مجلد")
+    folder_path = st.text_input("أدخل مسار مجلد الصور:")
+    output_folder = st.text_input("أدخل مسار حفظ النصوص:")
 
-        def create_download_link(text, filename="extracted_text.txt"):
-            val = io.BytesIO()
-            val.write(text.encode('utf-8'))
-            val.seek(0)
-            b64 = base64.b64encode(val.read()).decode('utf-8')
-            return f'<a href="data:text/plain;base64,{b64}" download="{filename}">تحميل النص كمستند</a>'
+    if st.button("ابدأ"):
+        if not os.path.exists(folder_path):
+            st.error("مسار مجلد الصور غير صحيح.")
+        elif not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
-        st.markdown("<div class='button-container'>", unsafe_allow_html=True)
-        st.markdown(create_download_link(text), unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-elif operation == "استخراج جميع النصوص من الصور في المجلد":
-    st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
-
-    uploaded_files = st.file_uploader("اختر صورًا من جهازك:", type=["png", "jpg", "jpeg", "webp"], accept_multiple_files=True)
-    if uploaded_files:
-        output_folder = "output_texts"
-        os.makedirs(output_folder, exist_ok=True)
-        with st.spinner("جاري استخراج النصوص..."):
-            for uploaded_file in uploaded_files:
-                try:
-                    image = Image.open(uploaded_file)
-                    text = pytesseract.image_to_string(image, lang='ara+eng', config=tessdata_dir_config)
-                    text = text.strip()
-                    if not text:
-                        st.warning(f"لم يتم العثور على أي نص في الصورة: {uploaded_file.name}")
-                        continue
-                    text_filename = os.path.splitext(uploaded_file.name)[0] + ".txt"
-                    text_file_path = os.path.join(output_folder, text_filename)
-                    with open(text_file_path, 'w', encoding='utf-8') as text_file:
-                        text_file.write(text)
-                    st.success(f"تم استخراج النصوص من {uploaded_file.name} وحفظها في {text_filename}")
-                except Exception as inner_e:
-                    st.error(f"حدث خطأ أثناء معالجة الصورة {uploaded_file.name}: {inner_e}")
-        st.write(f"تم حفظ جميع النصوص المستخرجة في المجلد: `{output_folder}`")
-else:
-    st.write("الرجاء اختيار عملية من الشريط الجانبي.")
+        with st.spinner("جاري معالجة الصور..."):
+            try:
+                for filename in os.listdir(folder_path):
+                    if filename.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                        file_path = os.path.join(folder_path, filename)
+                        image = Image.open(file_path)
+                        text = pytesseract.image_to_string(image, lang='ara+eng', config='--tessdata-dir ' + TESSDATA_DIR)
+                        output_file = os.path.join(output_folder, os.path.splitext(filename)[0] + ".txt")
+                        with open(output_file, "w", encoding="utf-8") as f:
+                            f.write(text)
+                        st.success(f"تم معالجة: {filename}")
+            except Exception as e:
+                st.error(f"حدث خطأ: {e}")
