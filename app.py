@@ -1,9 +1,10 @@
 import streamlit as st
 import os
-from PIL import Image
+from PIL import Image, ExifTags
 import pytesseract
 import io
 import base64
+
 st.set_page_config(page_title="استخراج النص من الصور", layout="wide")
 
 # CSS  
@@ -102,9 +103,28 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# الشريط الجانبي
+# Function to correct image orientation
+def correct_image_orientation(image):
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = image._getexif()
+        if exif is not None:
+            orientation_value = exif.get(orientation)
+            if orientation_value == 3:
+                image = image.rotate(180, expand=True)
+            elif orientation_value == 6:
+                image = image.rotate(270, expand=True)
+            elif orientation_value == 8:
+                image = image.rotate(90, expand=True)
+    except Exception:
+        pass  # Ignore errors if EXIF data is not available
+    return image
+
+# Sidebar
 with st.sidebar:
-    st.image("logo-1-1.png", use_container_width=True)
+    st.image("logo-1-1.png", use_container_width=True)  # Replace with the correct path to your image
     st.markdown("<div class='header-text'>استخراج النص من الصور بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
     st.markdown("<br><br>", unsafe_allow_html=True)
     operation = st.radio("اختر نوع العملية :", ("استخراج نص من صورة", "استخراج جميع النصوص من الصور في المجلد"))
@@ -116,6 +136,7 @@ if operation == "استخراج نص من صورة":
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
+        image = correct_image_orientation(image)  # Correct orientation
         st.image(image, caption="الصورة المحملة", use_container_width=True)
 
         with st.spinner("جاري تحليل النصوص..."):
@@ -166,8 +187,9 @@ elif operation == "استخراج جميع النصوص من الصور في ا�
                 for image_name in os.listdir(images_folder):
                     if image_name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
                         image_path = os.path.join(images_folder, image_name)
-                        try: # معالجة الأخطاء لكل صورة على حدة
+                        try:
                             image = Image.open(image_path)
+                            image = correct_image_orientation(image)  # Correct orientation
                             text = pytesseract.image_to_string(image, lang='ara+eng')
                             text_filename = os.path.splitext(image_name)[0] + ".txt"
                             text_file_path = os.path.join(output_folder, text_filename)
