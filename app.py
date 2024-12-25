@@ -125,7 +125,7 @@ def correct_image_orientation(image):
 # Sidebar
 with st.sidebar:
     st.image("logo-1-1.png", use_container_width=True)  # Replace with the correct path to your image
-    st.markdown("<div class='header-text'>استخراج النص من الصور بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
+    st.markdown("<div class='header-text'>تطبيق RMG المزود بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
     st.markdown("<br><br>", unsafe_allow_html=True)
     operation = st.radio("اختر نوع العملية :", ("استخراج نص من صورة", "استخراج جميع النصوص من الصور في المجلد"))
 
