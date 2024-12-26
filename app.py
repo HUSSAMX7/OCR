@@ -31,6 +31,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# الشريط الجانبي
+with st.sidebar:
+    st.image("logo-1-1.png", use_container_width=True)
+    st.markdown("<div style='text-align: right; font-size: 20px; font-weight: bold;'>تطبيق RMG المزود بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
+    operation = st.radio("اختر نوع العملية:", ("تحويل النص إلى صوت", "استخراج النصوص من الصور", "استخراج جميع النصوص من الصور في المجلد"))
+
 # وظيفة تحويل النص إلى كلام
 st.markdown("<h1 class='rtl-text'>تحويل النص إلى صوت</h1>", unsafe_allow_html=True)
 arabic_text = st.text_area("اكتب النص هنا:", height=200)
