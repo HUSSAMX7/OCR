@@ -5,6 +5,7 @@ import pytesseract
 import io
 import base64
 from gtts import gTTS
+import pygame
 
 # إعداد الصفحة
 st.set_page_config(page_title="تحويل النصوص إلى كلام واستخراج النصوص", layout="wide")
@@ -96,6 +97,9 @@ with st.sidebar:
     st.markdown("<div class='header-text'>تطبيق RMG المزود بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
     operation = st.radio("اختر نوع العملية :", ("تحويل النص إلى صوت", "استخراج النصوص من الصور", "استخراج جميع النصوص من الصور في المجلد"))
 
+# تحميل pygame للتأكد من إعداد الصوت
+pygame.mixer.init()
+
 # وظيفة تحويل النص إلى كلام
 if operation == "تحويل النص إلى صوت":
     st.markdown("<h1 class='rtl-text'>تحويل النص إلى صوت</h1>", unsafe_allow_html=True)
@@ -110,19 +114,26 @@ if operation == "تحويل النص إلى صوت":
                 tts.write_to_fp(mp3_fp)
                 mp3_fp.seek(0)
 
-                # تحويل الصوت إلى صيغة base64 لتضمينها في HTML
-                mp3_base64 = base64.b64encode(mp3_fp.read()).decode('utf-8')
-                audio_html = f"""
-                <audio controls autoplay>
-                    <source src="data:audio/mp3;base64,{mp3_base64}" type="audio/mp3">
-                </audio>
-                """
-                st.markdown(audio_html, unsafe_allow_html=True)
+                # تحميل الصوت وتشغيله
+                pygame.mixer.music.load(mp3_fp)
+                pygame.mixer.music.play()
+
                 st.success("تم تشغيل الصوت بنجاح!")
             else:
                 st.warning("الرجاء إدخال نص.")
         except Exception as e:
             st.error(f"حدث خطأ أثناء تشغيل الصوت: {e}")
+
+    # إضافة زر لإيقاف الصوت
+    if st.button("إيقاف الصوت"):
+        try:
+            if pygame.mixer.music.get_busy():  # تحقق من تشغيل الصوت
+                pygame.mixer.music.stop()
+                st.success("تم إيقاف الصوت.")
+            else:
+                st.warning("لا يوجد صوت قيد التشغيل لإيقافه.")
+        except Exception as e:
+            st.error(f"حدث خطأ أثناء إيقاف الصوت: {e}")
 
 # وظائف أخرى حسب الاختيار
 elif operation == "استخراج النصوص من الصور":
@@ -153,4 +164,22 @@ elif operation == "استخراج النصوص من الصور":
 
 elif operation == "استخراج جميع النصوص من الصور في المجلد":
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
-    # يمكن إضافة المزيد من التفاصيل هنا حسب الحاجة.
+    folder = st.text_input("أدخل مسار المجلد:")
+    
+    if folder:
+        if os.path.isdir(folder):
+            st.write("تم العثور على المجلد.")
+            for file_name in os.listdir(folder):
+                if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                    file_path = os.path.join(folder, file_name)
+                    try:
+                        img = Image.open(file_path)
+                        text = pytesseract.image_to_string(img, lang='ara+eng')
+                        text = text.strip()
+                        if text:
+                            st.write(f"النص المستخرج من {file_name}:")
+                            st.write(text)
+                    except Exception as e:
+                        st.error(f"خطأ في معالجة الملف {file_name}: {e}")
+        else:
+            st.error("لم يتم العثور على المجلد.")
