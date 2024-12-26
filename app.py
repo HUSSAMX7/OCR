@@ -99,7 +99,7 @@ if operation == "تحويل النص إلى صوت":
         else:
             st.warning("لا يوجد صوت قيد التشغيل.")
 
-     عرض مشغل الصوت إذا كان الصوت قيد التشغيل
+     # عرض مشغل الصوت إذا كان الصوت قيد التشغيل
     if st.session_state.audio_base64 and st.session_state.audio_playing:
         audio_html = f"""
         <audio controls autoplay>
