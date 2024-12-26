@@ -7,7 +7,7 @@ import base64
 from gtts import gTTS
 
 # إعداد الصفحة
-st.set_page_config(page_title="تحويل النصوص إلى كلام واستخراج النصوص", layout="wide")
+st.set_page_config(page_title="برنامج RMG المزود بالذكاء الاصطناعي", layout="wide")
 
 # CSS لتنسيق الصفحة
 st.markdown(
