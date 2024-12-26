@@ -80,6 +80,11 @@ st.markdown(
     .download-button:hover {
         background-color: #3B3644;
     }
+    audio {
+        display: block;
+        margin-top: 10px;
+        width: 100%;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -108,35 +113,18 @@ if operation == "تحويل النص إلى صوت":
                 # تحويل الصوت إلى صيغة base64 لتضمينها في HTML
                 mp3_base64 = base64.b64encode(mp3_fp.read()).decode('utf-8')
                 audio_html = f"""
-                <audio id="audio-player" autoplay>
+                <audio controls autoplay>
                     <source src="data:audio/mp3;base64,{mp3_base64}" type="audio/mp3">
                 </audio>
-                <script>
-                    var audio = document.getElementById("audio-player");
-                    function stopAudio() {{
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }}
-                </script>
-                <button onclick="stopAudio()" style="
-                    margin-top: 10px;
-                    padding: 10px 20px;
-                    background-color: #2A2630;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 16px;
-                ">إيقاف الصوت</button>
                 """
                 st.markdown(audio_html, unsafe_allow_html=True)
-                st.success("تم إنشاء وتشغيل الصوت بنجاح!")
+                st.success("تم تشغيل الصوت بنجاح!")
             else:
                 st.warning("الرجاء إدخال نص.")
         except Exception as e:
             st.error(f"حدث خطأ أثناء تشغيل الصوت: {e}")
 
-# وظيفة استخراج النصوص من صورة واحدة
+# وظائف أخرى حسب الاختيار
 elif operation == "استخراج النصوص من الصور":
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من الصور</h1>", unsafe_allow_html=True)
     uploaded_file = st.file_uploader("اختر صورة:", type=["png", "jpg", "jpeg", "webp"])
@@ -163,44 +151,6 @@ elif operation == "استخراج النصوص من الصور":
         st.markdown("<div class='rtl-label'>النص المكتشف:</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='text-container'>{text}</div>", unsafe_allow_html=True)
 
-        # وظيفة لتحميل النص
-        def create_download_link(text, filename="extracted_text.txt"):
-            val = io.BytesIO()
-            val.write(text.encode('utf-8'))
-            val.seek(0)
-            b64 = base64.b64encode(val.read()).decode('utf-8')
-            return f'<a class="download-button" href="data:text/plain;base64,{b64}" download="{filename}">تحميل النص كمستند</a>'
-
-        st.markdown("<div class='button-container'>", unsafe_allow_html=True)
-        st.markdown(create_download_link(text), unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# وظيفة استخراج النصوص من جميع الصور في مجلد
 elif operation == "استخراج جميع النصوص من الصور في المجلد":
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
-
-    images_folder = st.text_input("أدخل مسار مجلد الصور:")
-    output_folder = st.text_input("أدخل مسار مجلد حفظ النصوص:")
-
-    if st.button("بدء استخراج النصوص"):
-        if not os.path.exists(images_folder):
-            st.error("مسار مجلد الصور غير صحيح.")
-        elif not os.path.exists(output_folder):
-            st.error("مسار مجلد حفظ النصوص غير صحيح.")
-        else:
-            try:
-                for image_name in os.listdir(images_folder):
-                    if image_name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                        image_path = os.path.join(images_folder, image_name)
-                        try:
-                            image = Image.open(image_path)
-                            text = pytesseract.image_to_string(image, lang='ara+eng')
-                            text_filename = os.path.splitext(image_name)[0] + ".txt"
-                            text_file_path = os.path.join(output_folder, text_filename)
-                            with open(text_file_path, 'w', encoding='utf-8') as text_file:
-                                text_file.write(text)
-                            st.success(f"تم استخراج النصوص من {image_name} وحفظها في {text_filename}")
-                        except Exception as inner_e:
-                            st.error(f"حدث خطأ أثناء معالجة الصورة {image_name}: {inner_e}")
-            except Exception as e:
-                st.error(f"حدث خطأ أثناء استخراج النصوص: {e}")
+    # يمكن إضافة المزيد من التفاصيل هنا حسب الحاجة.
