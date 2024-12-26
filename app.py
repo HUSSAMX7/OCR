@@ -5,10 +5,6 @@ import pytesseract
 import io
 import base64
 from gtts import gTTS
-import pygame
-
-# تحديد مسار Tesseract
-#pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
 # إعداد الصفحة
 st.set_page_config(page_title="تحويل النصوص إلى كلام واستخراج النصوص", layout="wide")
@@ -107,24 +103,14 @@ if operation == "تحويل النص إلى صوت":
                 mp3_fp = io.BytesIO()
                 tts.write_to_fp(mp3_fp)
                 mp3_fp.seek(0)
-                pygame.mixer.init()
-                pygame.mixer.music.load(mp3_fp)
-                pygame.mixer.music.play()
-                st.success("تم تشغيل الصوت بنجاح!")
+
+                # إنشاء رابط تشغيل الصوت
+                st.audio(mp3_fp, format="audio/mp3")
+                st.success("تم إنشاء وتشغيل الصوت بنجاح!")
             else:
                 st.warning("الرجاء إدخال نص.")
         except Exception as e:
             st.error(f"حدث خطأ أثناء تشغيل الصوت: {e}")
-
-    if st.button("إيقاف الصوت"):
-        try:
-            if pygame.mixer.get_init():  # تحقق مما إذا كانت pygame مهيأة
-                pygame.mixer.music.stop()
-                st.success("تم إيقاف الصوت.")
-            else:
-                st.warning("لا يوجد صوت قيد التشغيل لإيقافه.")
-        except Exception as e:
-            st.error(f"حدث خطأ أثناء إيقاف الصوت: {e}")
 
 # وظيفة استخراج النصوص من صورة واحدة
 elif operation == "استخراج النصوص من الصور":
