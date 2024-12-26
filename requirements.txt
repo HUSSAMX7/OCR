@@ -1,6 +1,6 @@
 streamlit
-pytesseract
-pillow
-gtts
-pygame
 sounddevice
+vosk
+pytesseract
+gTTS
+pillow
