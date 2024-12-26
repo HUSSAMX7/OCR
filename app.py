@@ -35,30 +35,47 @@ st.markdown(
 st.markdown("<h1 class='rtl-text'>تحويل النص إلى صوت</h1>", unsafe_allow_html=True)
 arabic_text = st.text_area("اكتب النص هنا:", height=200)
 
-if "audio_html" not in st.session_state:
-    st.session_state.audio_html = None
+# إنشاء حالة لتتبع الصوت
+if "audio_base64" not in st.session_state:
+    st.session_state.audio_base64 = None  # لتخزين ملف الصوت
+if "audio_playing" not in st.session_state:
+    st.session_state.audio_playing = False  # حالة تشغيل الصوت
 
-if st.button("تشغيل/إيقاف الصوت"):
-    if arabic_text.strip():
-        try:
-            # إنشاء ملف صوتي
-            tts = gTTS(arabic_text, lang='ar')
-            mp3_fp = io.BytesIO()
-            tts.write_to_fp(mp3_fp)
-            mp3_fp.seek(0)
+# زر لتشغيل الصوت
+if st.button("تشغيل الصوت"):
+    if not st.session_state.audio_playing:  # إذا لم يتم تشغيل الصوت
+        if arabic_text.strip():
+            try:
+                # إنشاء ملف صوتي
+                tts = gTTS(arabic_text, lang='ar')
+                mp3_fp = io.BytesIO()
+                tts.write_to_fp(mp3_fp)
+                mp3_fp.seek(0)
 
-            # تحويل الصوت إلى صيغة base64
-            mp3_base64 = base64.b64encode(mp3_fp.read()).decode('utf-8')
-            st.session_state.audio_html = f"""
-            <audio controls autoplay>
-                <source src="data:audio/mp3;base64,{mp3_base64}" type="audio/mp3">
-            </audio>
-            """
-            st.success("تم تشغيل الصوت!")
-        except Exception as e:
-            st.error(f"حدث خطأ أثناء تشغيل الصوت: {e}")
+                # تحويل الصوت إلى صيغة base64
+                st.session_state.audio_base64 = base64.b64encode(mp3_fp.read()).decode('utf-8')
+                st.session_state.audio_playing = True
+                st.success("تم تشغيل الصوت!")
+            except Exception as e:
+                st.error(f"حدث خطأ أثناء تشغيل الصوت: {e}")
+        else:
+            st.warning("الرجاء إدخال نص.")
     else:
-        st.warning("الرجاء إدخال نص.")
+        st.warning("الصوت قيد التشغيل بالفعل.")
 
-if st.session_state.audio_html:
-    st.markdown(st.session_state.audio_html, unsafe_allow_html=True)
+# زر لإيقاف الصوت
+if st.button("إيقاف الصوت"):
+    if st.session_state.audio_playing:
+        st.session_state.audio_playing = False
+        st.success("تم إيقاف الصوت!")
+    else:
+        st.warning("لا يوجد صوت قيد التشغيل.")
+
+# عرض مشغل الصوت إذا كان الصوت قيد التشغيل
+if st.session_state.audio_base64 and st.session_state.audio_playing:
+    audio_html = f"""
+    <audio controls autoplay>
+        <source src="data:audio/mp3;base64,{st.session_state.audio_base64}" type="audio/mp3">
+    </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
