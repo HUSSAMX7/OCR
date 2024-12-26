@@ -99,13 +99,37 @@ if operation == "تحويل النص إلى صوت":
     if st.button("تشغيل الصوت"):
         try:
             if arabic_text.strip():
+                # إنشاء ملف صوتي
                 tts = gTTS(arabic_text, lang='ar')
                 mp3_fp = io.BytesIO()
                 tts.write_to_fp(mp3_fp)
                 mp3_fp.seek(0)
 
-                # إنشاء رابط تشغيل الصوت
-                st.audio(mp3_fp, format="audio/mp3")
+                # تحويل الصوت إلى صيغة base64 لتضمينها في HTML
+                mp3_base64 = base64.b64encode(mp3_fp.read()).decode('utf-8')
+                audio_html = f"""
+                <audio id="audio-player" autoplay>
+                    <source src="data:audio/mp3;base64,{mp3_base64}" type="audio/mp3">
+                </audio>
+                <script>
+                    var audio = document.getElementById("audio-player");
+                    function stopAudio() {{
+                        audio.pause();
+                        audio.currentTime = 0;
+                    }}
+                </script>
+                <button onclick="stopAudio()" style="
+                    margin-top: 10px;
+                    padding: 10px 20px;
+                    background-color: #2A2630;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 16px;
+                ">إيقاف الصوت</button>
+                """
+                st.markdown(audio_html, unsafe_allow_html=True)
                 st.success("تم إنشاء وتشغيل الصوت بنجاح!")
             else:
                 st.warning("الرجاء إدخال نص.")
