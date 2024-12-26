@@ -106,7 +106,7 @@ if operation == "تحويل النص إلى صوت":
             <source src="data:audio/mp3;base64,{st.session_state.audio_base64}" type="audio/mp3">
         #</audio>
         """
-        #st.markdown(audio_html, unsafe_allow_html=True)
+        st.markdown(audio_html, unsafe_allow_html=True)
 
 # وظيفة استخراج النصوص من صورة واحدة
 elif operation == "استخراج النصوص من الصور":
