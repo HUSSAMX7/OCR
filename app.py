@@ -12,17 +12,94 @@ st.set_page_config(page_title="استخراج النص من الصور", layout=
 # تحديد مسار Tesseract (إذا كان ضروريًا)
 # pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 
-# CSS لتنسيق الصفحة (كما هو)
+# CSS لتنسيق الصفحة
 st.markdown(
     """
     <style>
-    /* ... جميع أنماط CSS كما هي ... */
+    body {
+        direction: rtl;
+        font-family: 'Arial', sans-serif;
+    }
+    .rtl-text {
+        text-align: right;
+        direction: rtl;
+    }
+    .rtl-label {
+        text-align: right;
+        direction: rtl;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .button-container {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .stSuccess, .stWarning, .stError {
+        direction: rtl;
+        text-align: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+    .stSuccess > div, .stWarning > div, .stError > div {
+        max-width: 500px;
+        margin: 0 auto; /* توسيط الرسائل */
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .stSuccess > div {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .stWarning > div {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+    .stError > div {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .text-container {
+        border: 2px solid #2A2630;
+        border-radius: 10px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        color: #2A2630;
+        font-size: 16px;
+        line-height: 1.6;
+        direction: rtl;
+        text-align: right;
+        white-space: pre-wrap;
+        margin-top: 20px;
+        overflow-x: auto; /* إضافة شريط تمرير أفقي إذا كان النص طويلًا */
+    }
+    .download-button {
+        display: inline-block;
+        text-decoration: none;
+        background-color: #2A2630;
+        color: white;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+    }
+    .download-button:hover {
+        background-color: #3B3644;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# دالة لتصحيح اتجاه الصورة (تم نقلها خارج الكتل الأخرى)
+# دالة لتصحيح اتجاه الصورة
 def correct_image_orientation(image):
     try:
         for orientation in ExifTags.TAGS.keys():
@@ -38,10 +115,10 @@ def correct_image_orientation(image):
             elif orientation_value == 8:
                 image = image.rotate(90, expand=True)
     except Exception:
-        pass  # تجاهل الأخطاء إذا كانت بيانات EXIF غير متوفرة
+        pass
     return image
 
-# الشريط الجانبي (كما هو)
+# الشريط الجانبي
 with st.sidebar:
     st.image("logo-1-1.png", use_container_width=True)
     st.markdown("<div class='header-text'>تطبيق RMG المزود بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
@@ -90,10 +167,9 @@ elif operation == "استخراج النصوص من الصور":
         with st.spinner("جاري تحليل النصوص..."):
             try:
                 text = pytesseract.image_to_string(image, lang='ara+eng')
-                # عرض النص المكتشف
                 st.markdown("<div class='rtl-label'>النص المكتشف:</div>", unsafe_allow_html=True)
                 st.markdown(f"<div class='text-container'>{text}</div>", unsafe_allow_html=True)
-                # وظيفة لتحميل النص
+
                 def create_download_link(text, filename="extracted_text.txt"):
                     val = io.BytesIO()
                     val.write(text.encode('utf-8'))
@@ -112,29 +188,4 @@ elif operation == "استخراج جميع النصوص من الصور في ا�
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
     images_folder = st.text_input("أدخل مسار مجلد الصور:", "")
     output_folder = st.text_input("أدخل مسار مجلد حفظ النصوص:", "")
-    if st.button("استخراج النصوص من المجلد"):
-        if not os.path.exists(images_folder):
-            st.error("مسار مجلد الصور غير صحيح.")
-        elif not os.path.exists(output_folder):
-            st.error("مسار مجلد حفظ النصوص غير صحيح.")
-        else:
-            with st.spinner("جاري استخراج النصوص..."):
-                try:
-                    if not os.path.exists(output_folder):
-                        os.makedirs(output_folder)
-                    for image_name in os.listdir(images_folder):
-                        if image_name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-                            image_path = os.path.join(images_folder, image_name)
-                            try:
-                                image = Image.open(image_path)
-                                image = correct_image_orientation(image)
-                                text = pytesseract.image_to_string(image, lang='ara+eng')
-                                text_filename = os.path.splitext(image_name)[0] + ".txt"
-                                text_file_path = os.path.join(output_folder, text_filename)
-                                with open(text_file_path, "w", encoding="utf-8") as f:
-                                    f.write(text)
-                            except Exception as e:
-                                st.error(f"حدث خطأ أثناء معالجة الصورة {image_name}: {e}")
-                    st.success("تم استخراج النصوص بنجاح!")
-                except Exception as e:
-                    st.error(f"حدث خطأ عام: {e}")
+    if
