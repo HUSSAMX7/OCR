@@ -45,7 +45,7 @@ st.markdown(
     }
     .stSuccess > div, .stWarning > div, .stError > div {
         max-width: 500px;
-        margin: 0 auto; /* توسيط الرسائل */
+        margin: 0 auto;
         text-align: center;
         padding: 10px;
         border-radius: 5px;
@@ -77,7 +77,7 @@ st.markdown(
         text-align: right;
         white-space: pre-wrap;
         margin-top: 20px;
-        overflow-x: auto; /* إضافة شريط تمرير أفقي إذا كان النص طويلًا */
+        overflow-x: auto;
     }
     .download-button {
         display: inline-block;
@@ -187,5 +187,4 @@ elif operation == "استخراج النصوص من الصور":
 elif operation == "استخراج جميع النصوص من الصور في المجلد":
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
     images_folder = st.text_input("أدخل مسار مجلد الصور:", "")
-    output_folder = st.text_input("أدخل مسار مجلد حفظ النصوص:", "")
-    if
+    output_folder = st.text_input("أدخل مسار مجلد حفظ
