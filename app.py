@@ -36,7 +36,6 @@ st.markdown(
         width: 100%;
         margin-top: 20px;
         margin-bottom: 20px;
-@@ -50,93 +56,83 @@
         font-size: 16px;
         border-radius: 5px;
     }
@@ -187,7 +186,7 @@ elif operation == "استخراج النصوص من الصور":
         st.image(image, caption="الصورة المحملة", use_container_width=True)
 
         with st.spinner("جاري تحليل النصوص..."):
-@@ -153,20 +149,23 @@ def correct_image_orientation(image):
+def correct_image_orientation(image):
                 st.error(f"حدث خطأ أثناء تحليل الصورة: {e}")
                 st.stop()
 
@@ -213,7 +212,7 @@ elif operation == "استخراج النصوص من الصور":
 elif operation == "استخراج جميع النصوص من الصور في المجلد":
     st.markdown("<h1 class='rtl-text'>استخراج النصوص من جميع الصور في المجلد</h1>", unsafe_allow_html=True)
 
-@@ -179,17 +178,12 @@ def create_download_link(text, filename="extracted_text.txt"):
+def create_download_link(text, filename="extracted_text.txt"):
         elif not os.path.exists(output_folder):
             st.error("مسار مجلد حفظ النصوص غير صحيح.")
         else:
