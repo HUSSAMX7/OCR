@@ -5,10 +5,6 @@ import pytesseract
 import io
 import base64
 from gtts import gTTS
-import sounddevice as sd
-import queue
-import vosk
-import json
 
 st.set_page_config(page_title="برنامج RMG المزود بالذكاء الاصطناعي", layout="wide")
 
@@ -59,7 +55,7 @@ with st.sidebar:
     st.markdown("<div style='text-align: right; font-size: 20px; font-weight: bold;'>تطبيق RMG المزود بالذكاء الاصطناعي</div>", unsafe_allow_html=True)
     operation = st.radio(
         "اختر نوع العملية:", 
-        ("تحويل النص إلى صوت", "استخراج النصوص من الصور", "استخراج جميع النصوص من الصور في المجلد", "تحويل الصوت إلى نص")
+        ("تحويل النص إلى صوت", "استخراج النصوص من الصور", "استخراج جميع النصوص من الصور في المجلد")
     )
 
 if "audio_base64" not in st.session_state:
@@ -124,27 +120,3 @@ elif operation == "استخراج النصوص من الصور":
 
         st.markdown("<div class='rtl-label'>النص المكتشف:</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='text-container'>{text}</div>", unsafe_allow_html=True)
-
-elif operation == "تحويل الصوت إلى نص":
-    st.markdown("<h1 class='rtl-text'>تحويل الصوت إلى نص</h1>", unsafe_allow_html=True)
-    model_path = "C:/Users/USER/Desktop/vosk-model-ar-mgb2-0.4"  
-    try:
-        model = vosk.Model(model_path)
-        q = queue.Queue()
-
-        def callback(indata, frames, time, status):
-            if status:
-                st.error(f"خطأ في الإدخال: {status}")
-            q.put(bytes(indata))
-
-        with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16',
-                               channels=1, callback=callback):
-            rec = vosk.KaldiRecognizer(model, 16000)
-            st.success("ابدأ بالتحدث...")
-            while True:
-                data = q.get()
-                if rec.AcceptWaveform(data):
-                    result = json.loads(rec.Result())
-                    st.markdown(f"<div class='text-container'>{result.get('text', '')}</div>", unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"حدث خطأ أثناء تهيئة النموذج: {e}")
