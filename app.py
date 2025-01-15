@@ -126,26 +126,29 @@ elif operation == "استخراج جميع النصوص من الصور في ا�
     folder_path = st.text_input("أدخل مسار المجلد:")
 
     if st.button("استخراج النصوص"):
-        if folder_path.strip() and os.path.isdir(folder_path):
-            output_texts = {}
-            with st.spinner("جاري تحليل النصوص من الصور..."):
-                try:
-                    for file_name in os.listdir(folder_path):
-                        if file_name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
-                            file_path = os.path.join(folder_path, file_name)
-                            image = Image.open(file_path)
-                            text = pytesseract.image_to_string(image, lang='ara+eng').strip()
-                            output_texts[file_name] = text
+        if folder_path.strip():
+            if os.path.isdir(folder_path):
+                output_texts = {}
+                with st.spinner("جاري تحليل النصوص من الصور..."):
+                    try:
+                        for file_name in os.listdir(folder_path):
+                            if file_name.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                                file_path = os.path.join(folder_path, file_name)
+                                image = Image.open(file_path)
+                                text = pytesseract.image_to_string(image, lang='ara+eng').strip()
+                                output_texts[file_name] = text
 
-                    if output_texts:
-                        st.success("تم استخراج النصوص بنجاح!")
-                        for file_name, text in output_texts.items():
-                            st.markdown(f"<div class='rtl-label'>النص من الصورة: {file_name}</div>", unsafe_allow_html=True)
-                            st.markdown(f"<div class='text-container'>{text}</div>", unsafe_allow_html=True)
-                    else:
-                        st.warning("لم يتم العثور على أي صور صالحة في المجلد.")
+                        if output_texts:
+                            st.success("تم استخراج النصوص بنجاح!")
+                            for file_name, text in output_texts.items():
+                                st.markdown(f"<div class='rtl-label'>النص من الصورة: {file_name}</div>", unsafe_allow_html=True)
+                                st.markdown(f"<div class='text-container'>{text}</div>", unsafe_allow_html=True)
+                        else:
+                            st.warning("لم يتم العثور على أي صور صالحة في المجلد.")
 
-                except Exception as e:
-                    st.error(f"حدث خطأ أثناء تحليل الصور: {e}")
+                    except Exception as e:
+                        st.error(f"حدث خطأ أثناء تحليل الصور: {e}")
+            else:
+                st.warning("المسار المدخل ليس مجلداً صالحاً. الرجاء إدخال مسار مجلد صحيح.")
         else:
-            st.warning("الرجاء إدخال مسار مجلد صحيح.")
+            st.warning("الرجاء إدخال مسار مجلد.")
